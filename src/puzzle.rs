@@ -44,6 +44,14 @@ impl Board {
         }
     }
 
+    pub fn get_size(&self) -> usize {
+        self.dimensions.width * self.dimensions.height
+    }
+
+    pub fn get_piece(&self, position: usize) -> usize {
+        self.squares[position].piece_id
+    }
+
     pub fn add_piece(&mut self, position: usize, piece_id: usize) {
         self.squares[position].piece_id = piece_id;
         self.squares[position].empty = false;

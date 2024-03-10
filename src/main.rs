@@ -5,6 +5,8 @@ mod solver;
 use puzzle::{Dimensions, Puzzle, PuzzleBuilder};
 use solver::Solver;
 
+use crate::solver::PuzzleState;
+
 fn main() {
     let dimensions = Dimensions::new(2, 2);
 
@@ -21,10 +23,10 @@ fn main() {
     let mut solver = Solver::new(&mut puzzle);
 
     let mut i = 0;
-    let mut solved = false;
-    while !solved {
+    let mut state = PuzzleState::Progressing;
+    while state == PuzzleState::Progressing {
         i += 1;
         println!("Step {i}");
-        solved = solver.step();
+        state = solver.step();
     }
 }
