@@ -111,9 +111,7 @@ impl Puzzle {
         } else {
             // is not in the beginning of a row
             let (piece_id, empty) = self.board.get_piece(position - 1);
-            if empty {
-                connectors[0] = Some(Connector::flat());
-            } else {
+            if !empty {
                 connectors[0] = Some(self.pieces[piece_id].get_connector(2));
             }
         }
@@ -124,9 +122,7 @@ impl Puzzle {
         } else {
             // is not in the end of a row
             let (piece_id, empty) = self.board.get_piece(position + 1);
-            if empty {
-                connectors[2] = Some(Connector::flat());
-            } else {
+            if !empty {
                 connectors[2] = Some(self.pieces[piece_id].get_connector(0));
             }
         }
@@ -137,9 +133,7 @@ impl Puzzle {
         } else {
             // is not on the first row
             let (piece_id, empty) = self.board.get_piece(position - self.board.dimensions.width);
-            if empty {
-                connectors[1] = Some(Connector::flat());
-            } else {
+            if !empty {
                 connectors[1] = Some(self.pieces[piece_id].get_connector(3));
             }
         }
@@ -150,9 +144,7 @@ impl Puzzle {
         } else {
             // is not on the last row
             let (piece_id, empty) = self.board.get_piece(position + self.board.dimensions.width);
-            if empty {
-                connectors[3] = Some(Connector::flat());
-            } else {
+            if !empty {
                 connectors[3] = Some(self.pieces[piece_id].get_connector(1));
             }
         }

@@ -8,7 +8,7 @@ use solver::Solver;
 use crate::solver::PuzzleState;
 
 fn main() {
-    let dimensions = Dimensions::new(2, 2);
+    let dimensions = Dimensions::new(3, 3);
 
     println!(
         "Starting with width {} and height {}...",
