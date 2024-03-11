@@ -97,7 +97,13 @@ impl Piece {
     }
 
     pub fn flip(&mut self) {
-        //TODO: implement flipping
+        for connector in self.connectors.iter_mut() {
+            connector.offset = match connector.offset {
+                ConnectorOffset::Left => ConnectorOffset::Right,
+                ConnectorOffset::Right => ConnectorOffset::Left,
+                ConnectorOffset::Flat => ConnectorOffset::Flat,
+            };
+        }
     }
 
     pub fn get_connector(&self, index: usize) -> Connector {

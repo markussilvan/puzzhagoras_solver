@@ -132,22 +132,28 @@ impl<'a> Solver<'a> {
         let connectors_around = puzzle.get_connectors_around(position);
         let piece = &mut puzzle.pieces[piece_id];
 
-        for _ in 0..4 {
-            println!(
-                "Checking if connector '{:?}' fits the previous piece (if any)",
-                piece.get_connector(0)
-            );
-            if piece.fits(&connectors_around) {
-                println!("Piece fits on all sides");
-                fits = true;
+        // try the piece in all it's rotations (including flipping it)
+        for _ in 0..2 {
+            for _ in 0..4 {
+                if piece.fits(&connectors_around) {
+                    println!("Piece fits on all sides");
+                    fits = true;
+                    break;
+                }
+                println!("Rotating the piece");
+                piece.rotate();
+            }
+
+            if fits == true {
                 break;
             }
-            println!("Rotating piece");
-            piece.rotate();
+
+            println!("Flipping the piece");
+            piece.flip();
         }
 
         if fits {
-            println!("Adding piece to the board (position: {position})");
+            println!("Adding the piece to the board (position: {position})");
             puzzle.board.add_piece(position, piece_id);
             puzzle.pieces[piece_id].used = true;
         }

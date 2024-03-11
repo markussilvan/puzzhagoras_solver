@@ -17,7 +17,8 @@ fn main() {
 
     let mut puzzle = PuzzleBuilder::new()
         .with_dimensions(dimensions)
-        .with_pieces_from_file("yellow-pieces.json".to_string())
+        .with_pieces_from_file("green-pieces.json".to_string())
+        //.with_pieces_from_file("yellow-pieces.json".to_string())
         .build();
 
     let mut solver = Solver::new(&mut puzzle);
@@ -30,5 +31,9 @@ fn main() {
         state = solver.step();
     }
 
+    //puzzle.write_pieces_to_file("pieces.json".to_string());
+
+    println!("Board:");
+    println!("{}", puzzle);
     println!("Final state: {state:?}");
 }
