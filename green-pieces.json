@@ -114,12 +114,12 @@
       {
         "gender": "female",
         "ctype": "small",
-        "offset": "right"
+        "offset": "left"
       },
       {
         "gender": "female",
         "ctype": "small",
-        "offset": "right"
+        "offset": "left"
       }
     ],
     "color": "green"
