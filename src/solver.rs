@@ -35,8 +35,8 @@ impl<'a> Solver<'a> {
         println!("Stepping...");
 
         let start_piece_id = {
-            let mut piece_id = self.puzzle.board.get_piece(self.position);
-            if piece_id != 0 {
+            let (mut piece_id, empty) = self.puzzle.board.get_piece(self.position);
+            if !empty {
                 // we are backtracking, take the old piece off the board
                 println!("Backtracking...");
                 self.puzzle.board.remove_piece(self.position, piece_id);
@@ -129,8 +129,7 @@ impl<'a> Solver<'a> {
     fn add_if_fits(puzzle: &mut Puzzle, position: usize, piece_id: usize) -> bool {
         let mut fits = false;
 
-        let before = puzzle.get_edge_before(position);
-        println!("Connector before is {before:?}");
+        let connectors_around = puzzle.get_connectors_around(position);
         let piece = &mut puzzle.pieces[piece_id];
 
         for _ in 0..4 {
@@ -138,8 +137,8 @@ impl<'a> Solver<'a> {
                 "Checking if connector '{:?}' fits the previous piece (if any)",
                 piece.get_connector(0)
             );
-            if piece.get_connector(0).fits(&before) {
-                println!("Piece fits");
+            if piece.fits(&connectors_around) {
+                println!("Piece fits on all sides");
                 fits = true;
                 break;
             }

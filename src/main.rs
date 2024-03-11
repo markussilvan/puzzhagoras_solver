@@ -29,4 +29,6 @@ fn main() {
         println!("Step {i}");
         state = solver.step();
     }
+
+    println!("Final state: {state:?}");
 }

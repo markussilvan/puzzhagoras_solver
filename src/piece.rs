@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum ConnectorGender {
     Male,
     Female,
     Flat,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum ConnectorType {
     Small,
     Large,
@@ -16,14 +16,14 @@ pub enum ConnectorType {
 
 /// Offset of the connector when looked from the middle of the piece towards the edge.
 /// The connector is always a bit of left of center or right of center.
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum ConnectorOffset {
     Left,
     Right,
     Flat,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Connector {
     gender: ConnectorGender,
     ctype: ConnectorType,
@@ -61,7 +61,7 @@ impl Connector {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum Color {
     Green,
     Yellow,
@@ -71,7 +71,7 @@ pub enum Color {
 ///
 /// A None connector means the edge is flat.
 /// Also two flat edges are considered to fit together.
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Piece {
     connectors: [Connector; 4],
     color: Color,
@@ -97,5 +97,18 @@ impl Piece {
 
     pub fn get_connector(&self, index: usize) -> Connector {
         self.connectors[index].clone()
+    }
+
+    pub fn fits(&self, connectors_around: &[Option<Connector>; 4]) -> bool {
+        for i in 0..4 {
+            if let Some(conn) = connectors_around[i] {
+                if !self.get_connector(i).fits(&conn) {
+                    println!("Piece doesn't fit on {i} side");
+                    return false;
+                }
+            }
+        }
+
+        true
     }
 }

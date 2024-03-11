@@ -48,8 +48,11 @@ impl Board {
         self.dimensions.width * self.dimensions.height
     }
 
-    pub fn get_piece(&self, position: usize) -> usize {
-        self.squares[position].piece_id
+    pub fn get_piece(&self, position: usize) -> (usize, bool) {
+        (
+            self.squares[position].piece_id,
+            self.squares[position].empty,
+        )
     }
 
     pub fn add_piece(&mut self, position: usize, piece_id: usize) {
@@ -90,23 +93,66 @@ impl Puzzle {
         }
     }
 
-    pub fn get_edge_before(&self, position: usize) -> Connector {
+    pub fn get_connectors_around(&self, position: usize) -> [Option<Connector>; 4] {
+        let mut connectors = [None; 4];
+
         let remainder = position % self.board.dimensions.width;
+
+        //TODO: remove the repetition and put it in a loop/function/macro instead
+
         if remainder == 0 {
-            // is a beginning of a row
-            return Connector::flat();
+            // is in the beginning of a row
+            connectors[0] = Some(Connector::flat());
+        } else {
+            // is not in the beginning of a row
+            let (piece_id, empty) = self.board.get_piece(position - 1);
+            if empty {
+                connectors[0] = Some(Connector::flat());
+            } else {
+                connectors[0] = Some(self.pieces[piece_id].get_connector(2));
+            }
         }
-        //if remainder == self.dimensions.width - 1 {
-        //    // is the end of a row
-        //    return Connector::flat();
-        //}
 
-        let right_facing_connector_index = 2;
+        if remainder == self.board.dimensions.width - 1 {
+            // is the end of a row
+            connectors[2] = Some(Connector::flat());
+        } else {
+            // is not in the end of a row
+            let (piece_id, empty) = self.board.get_piece(position + 1);
+            if empty {
+                connectors[2] = Some(Connector::flat());
+            } else {
+                connectors[2] = Some(self.pieces[piece_id].get_connector(0));
+            }
+        }
 
-        let piece_id = self.board.squares[position - 1].piece_id;
-        let connector = self.pieces[piece_id].get_connector(right_facing_connector_index);
+        if position < self.board.dimensions.width {
+            // is on the first row
+            connectors[1] = Some(Connector::flat());
+        } else {
+            // is not on the first row
+            let (piece_id, empty) = self.board.get_piece(position - self.board.dimensions.width);
+            if empty {
+                connectors[1] = Some(Connector::flat());
+            } else {
+                connectors[1] = Some(self.pieces[piece_id].get_connector(3));
+            }
+        }
 
-        connector
+        if position >= (self.board.dimensions.width * (self.board.dimensions.height - 1)) {
+            // is on the last row
+            connectors[3] = Some(Connector::flat());
+        } else {
+            // is not on the last row
+            let (piece_id, empty) = self.board.get_piece(position + self.board.dimensions.width);
+            if empty {
+                connectors[3] = Some(Connector::flat());
+            } else {
+                connectors[3] = Some(self.pieces[piece_id].get_connector(1));
+            }
+        }
+
+        connectors
     }
 }
 
