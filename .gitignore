@@ -2,3 +2,5 @@ target/
 issues/
 
 .dit-config
+
+pieces.json

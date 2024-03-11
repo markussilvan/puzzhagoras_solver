@@ -1,3 +1,8 @@
+use std::{
+    fs::File,
+    io::{BufReader, BufWriter, Write},
+};
+
 use serde::{Deserialize, Serialize};
 
 use super::piece::{Connector, ConnectorGender, ConnectorOffset, ConnectorType, Piece};
@@ -154,6 +159,21 @@ impl Puzzle {
 
         connectors
     }
+
+    pub fn read_pieces_from_file(&mut self, filename: String) -> std::io::Result<()> {
+        let file = File::open(filename)?;
+        let reader = BufReader::new(file);
+        self.pieces = serde_json::from_reader(reader)?;
+        Ok(())
+    }
+
+    pub fn write_pieces_to_file(&self, filename: String) -> std::io::Result<()> {
+        let file = File::create(filename)?;
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer_pretty(&mut writer, &self.pieces)?;
+        writer.flush()?;
+        Ok(())
+    }
 }
 
 impl std::fmt::Display for Puzzle {
@@ -167,6 +187,7 @@ impl std::fmt::Display for Puzzle {
 pub struct PuzzleBuilder {
     pieces: Option<Vec<Piece>>,
     dimensions: Option<Dimensions>,
+    filename: Option<String>,
 }
 
 impl PuzzleBuilder {
@@ -174,11 +195,17 @@ impl PuzzleBuilder {
         Self {
             pieces: None,
             dimensions: None,
+            filename: None,
         }
     }
 
     pub fn with_dimensions(&mut self, dimensions: Dimensions) -> &mut Self {
         self.dimensions = Some(dimensions);
+        self
+    }
+
+    pub fn with_pieces_from_file(&mut self, filename: String) -> &mut Self {
+        self.filename = Some(filename);
         self
     }
 
@@ -251,7 +278,15 @@ impl PuzzleBuilder {
     pub fn build(&mut self) -> Puzzle {
         let dimensions = self.dimensions.as_ref().unwrap().clone();
         let mut puzzle = Puzzle::new(dimensions);
-        puzzle.pieces = self.pieces.as_ref().unwrap().clone();
+
+        if self.pieces.is_some() {
+            puzzle.pieces = self.pieces.as_ref().unwrap().clone();
+        }
+
+        if self.filename.is_some() {
+            puzzle.read_pieces_from_file(self.filename.as_ref().unwrap().clone());
+        }
+
         puzzle
     }
 }

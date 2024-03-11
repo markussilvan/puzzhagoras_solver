@@ -17,7 +17,7 @@ fn main() {
 
     let mut puzzle = PuzzleBuilder::new()
         .with_dimensions(dimensions)
-        .with_yellow_corner_pieces()
+        .with_pieces_from_file("yellow-pieces.json".to_string())
         .build();
 
     let mut solver = Solver::new(&mut puzzle);

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
 pub enum ConnectorGender {
     Male,
     Female,
@@ -8,6 +9,7 @@ pub enum ConnectorGender {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
 pub enum ConnectorType {
     Small,
     Large,
@@ -17,6 +19,7 @@ pub enum ConnectorType {
 /// Offset of the connector when looked from the middle of the piece towards the edge.
 /// The connector is always a bit of left of center or right of center.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
 pub enum ConnectorOffset {
     Left,
     Right,
@@ -62,6 +65,7 @@ impl Connector {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
 pub enum Color {
     Green,
     Yellow,
@@ -75,6 +79,7 @@ pub enum Color {
 pub struct Piece {
     connectors: [Connector; 4],
     color: Color,
+    #[serde(skip)]
     pub used: bool,
 }
 
