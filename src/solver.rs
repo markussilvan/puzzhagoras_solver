@@ -11,13 +11,13 @@ pub enum PuzzleState {
     Unsolvable,
 }
 
-pub struct Solver<'a> {
-    puzzle: &'a mut Puzzle,
+pub struct Solver {
+    puzzle: Puzzle,
     position: usize,
 }
 
-impl<'a> Solver<'a> {
-    pub fn new(puzzle: &'a mut Puzzle) -> Self {
+impl Solver {
+    pub fn new(puzzle: Puzzle) -> Self {
         Self {
             puzzle,
             position: 0,
