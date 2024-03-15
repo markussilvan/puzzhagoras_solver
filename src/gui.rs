@@ -22,6 +22,8 @@ pub struct PuzzhagorasApp {
     piece_set: PieceSet,
     #[serde(skip)]
     solver: Option<Solver>,
+    //#[serde(skip)]
+    //piece_textures: Vec<egui::TextureHandle>,
 }
 
 impl Default for PuzzhagorasApp {
@@ -31,6 +33,7 @@ impl Default for PuzzhagorasApp {
             height: 3.0,
             piece_set: PieceSet::Yellow,
             solver: None,
+            //piece_textures: Vec::new(),
         }
     }
 }
@@ -55,7 +58,7 @@ impl PuzzhagorasApp {
             ui.vertical(|ui| {
                 ui.heading("Dimensions");
 
-                egui::Grid::new("some_unique_id").show(ui, |ui| {
+                egui::Grid::new("dimensions_grid").show(ui, |ui| {
                     ui.label("Width ");
                     ui.add(egui::Slider::new(&mut self.width, 2.0..=5.0).integer());
                     ui.end_row();
@@ -77,10 +80,7 @@ impl PuzzhagorasApp {
         });
 
         ui.horizontal(|ui| {
-            if ui.button("Reset puzzle").clicked() {
-                self.solver = None;
-            }
-            if ui.button("Solve puzzle").clicked() {
+            if ui.button("Start solve").clicked() {
                 let dimensions = Dimensions::new(self.width as usize, self.height as usize);
 
                 println!(
@@ -110,7 +110,7 @@ impl PuzzhagorasApp {
 
                 //puzzle.write_pieces_to_file("pieces.json".to_string());
 
-                println!("Board:");
+                //println!("Board:");
                 //println!("{}", self.solver.as_ref().unwrap().puzzle);
                 println!("Final state: {state:?}");
             }
@@ -147,31 +147,7 @@ impl eframe::App for PuzzhagorasApp {
         });
 
         egui::SidePanel::right("right_panel").show(ctx, |ui| {
-            ui.heading("Pieces");
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    //TODO: draw all pieces here
-                    for _ in 0..13 {
-                        ui.add(
-                            egui::Image::new(egui::include_image!(
-                                "../assets/puzzhagoras_icon.png"
-                            ))
-                            .rounding(5.0),
-                        );
-                    }
-                });
-                ui.vertical(|ui| {
-                    //TODO: draw all pieces here
-                    for _ in 0..13 {
-                        ui.add(
-                            egui::Image::new(egui::include_image!(
-                                "../assets/puzzhagoras_icon.png"
-                            ))
-                            .rounding(5.0),
-                        );
-                    }
-                });
-            });
+            pieces(ui, &self.piece_set);
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -179,7 +155,7 @@ impl eframe::App for PuzzhagorasApp {
             self.settings(ui);
             ui.separator();
 
-            puzzle(ui);
+            puzzle(ui, self.width as usize, self.height as usize);
             ui.separator();
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
@@ -190,21 +166,62 @@ impl eframe::App for PuzzhagorasApp {
     }
 }
 
-fn puzzle(ui: &mut egui::Ui) {
-    ui.heading("Puzzle");
-    ui.vertical(|ui| {
-        //TODO: size? how to scale it? use a painter?
-        for _ in 0..5 {
-            ui.horizontal(|ui| {
-                for _ in 0..5 {
-                    ui.add(
-                        egui::Image::new(egui::include_image!("../assets/puzzhagoras_icon.png"))
-                            .rounding(5.0),
-                    );
+macro_rules! add_piece_image {
+    ($ui:expr, $filename:expr) => {{
+        $ui.add(egui::Image::new(egui::include_image!($filename)));
+    }};
+}
+
+fn pieces(ui: &mut egui::Ui, piece_set: &PieceSet) {
+    let mut piece_counter = 0;
+    let num_pieces = match piece_set {
+        PieceSet::Yellow => 9,
+        PieceSet::Green => 16,
+        _ => 25,
+    };
+    ui.heading("Pieces");
+    egui::Grid::new("puzzle_grid")
+        .min_col_width(32.0)
+        .min_row_height(32.0)
+        .show(ui, |ui| {
+            'outer: for _ in 0..13 {
+                for _ in 0..2 {
+                    match piece_counter {
+                        0 => add_piece_image!(ui, "../assets/yellow_01.png"),
+                        1 => add_piece_image!(ui, "../assets/yellow_02.png"),
+                        2 => add_piece_image!(ui, "../assets/yellow_03.png"),
+                        3 => add_piece_image!(ui, "../assets/yellow_04.png"),
+                        4 => add_piece_image!(ui, "../assets/yellow_05.png"),
+                        5 => add_piece_image!(ui, "../assets/yellow_06.png"),
+                        6 => add_piece_image!(ui, "../assets/yellow_07.png"),
+                        7 => add_piece_image!(ui, "../assets/yellow_08.png"),
+                        8 => add_piece_image!(ui, "../assets/yellow_09.png"),
+                        _ => add_piece_image!(ui, "../assets/puzzhagoras_icon.png"),
+                    };
+                    piece_counter += 1;
+                    if piece_counter >= num_pieces {
+                        break 'outer;
+                    }
                 }
-            });
-        }
-    });
+                ui.end_row();
+            }
+        });
+}
+
+fn puzzle(ui: &mut egui::Ui, width: usize, height: usize) {
+    egui::Grid::new("puzzle_grid")
+        .min_col_width(64.0)
+        .min_row_height(64.0)
+        .show(ui, |ui| {
+            for _ in 0..height {
+                for _ in 0..width {
+                    ui.add(egui::Image::new(egui::include_image!(
+                        "../assets/puzzhagoras_icon.png"
+                    )));
+                }
+                ui.end_row();
+            }
+        });
 }
 
 fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
