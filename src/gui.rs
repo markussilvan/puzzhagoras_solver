@@ -13,27 +13,35 @@ enum PieceSet {
     Both,
 }
 
-/// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(Deserialize, Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct PuzzhagorasApp {
     width: f32,
     height: f32,
     piece_set: PieceSet,
-    #[serde(skip)]
     solver: Option<Solver>,
-    //#[serde(skip)]
-    //piece_textures: Vec<egui::TextureHandle>,
+    icon: egui::Image<'static>,
+    piece_images: Vec<egui::Image<'static>>,
 }
 
 impl Default for PuzzhagorasApp {
     fn default() -> Self {
+        let images = vec![
+            egui::Image::new(egui::include_image!("../assets/yellow_01.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_02.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_03.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_04.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_05.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_06.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_07.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_08.png")),
+            egui::Image::new(egui::include_image!("../assets/yellow_09.png")),
+        ];
         Self {
             width: 3.0,
             height: 3.0,
             piece_set: PieceSet::Yellow,
             solver: None,
-            //piece_textures: Vec::new(),
+            icon: egui::Image::new(egui::include_image!("../assets/puzzhagoras_icon.png")),
+            piece_images: images,
         }
     }
 }
@@ -116,15 +124,48 @@ impl PuzzhagorasApp {
             }
         });
     }
+
+    fn pieces(&self, ui: &mut egui::Ui) {
+        let mut piece_id = 0;
+        let num_pieces = match self.piece_set {
+            PieceSet::Yellow => 9,
+            PieceSet::Green => 16,
+            PieceSet::Both => 25,
+        };
+        ui.heading("Pieces");
+        egui::Grid::new("puzzle_grid")
+            .min_col_width(32.0)
+            .min_row_height(32.0)
+            .show(ui, |ui| {
+                'outer: for _ in 0..13 {
+                    for _ in 0..2 {
+                        ui.add(self.piece_images[piece_id].clone());
+                        piece_id += 1;
+                        if piece_id >= num_pieces {
+                            break 'outer;
+                        }
+                    }
+                    ui.end_row();
+                }
+            });
+    }
+
+    fn puzzle(&self, ui: &mut egui::Ui) {
+        egui::Grid::new("puzzle_grid")
+            .min_col_width(64.0)
+            .min_row_height(64.0)
+            .show(ui, |ui| {
+                for _ in 0..self.height as usize {
+                    for _ in 0..self.width as usize {
+                        ui.add(self.icon.clone());
+                    }
+                    ui.end_row();
+                }
+            });
+    }
 }
 
 impl eframe::App for PuzzhagorasApp {
-    /// Called by the frame work to save state before shutdown.
-    //fn save(&mut self, storage: &mut dyn eframe::Storage) {
-    //    eframe::set_value(storage, eframe::APP_KEY, self);
-    //}
-
-    /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_zoom_factor(1.5);
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -147,7 +188,7 @@ impl eframe::App for PuzzhagorasApp {
         });
 
         egui::SidePanel::right("right_panel").show(ctx, |ui| {
-            pieces(ui, &self.piece_set);
+            self.pieces(ui);
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -155,7 +196,7 @@ impl eframe::App for PuzzhagorasApp {
             self.settings(ui);
             ui.separator();
 
-            puzzle(ui, self.width as usize, self.height as usize);
+            self.puzzle(ui);
             ui.separator();
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
@@ -164,64 +205,6 @@ impl eframe::App for PuzzhagorasApp {
             });
         });
     }
-}
-
-macro_rules! add_piece_image {
-    ($ui:expr, $filename:expr) => {{
-        $ui.add(egui::Image::new(egui::include_image!($filename)));
-    }};
-}
-
-fn pieces(ui: &mut egui::Ui, piece_set: &PieceSet) {
-    let mut piece_counter = 0;
-    let num_pieces = match piece_set {
-        PieceSet::Yellow => 9,
-        PieceSet::Green => 16,
-        _ => 25,
-    };
-    ui.heading("Pieces");
-    egui::Grid::new("puzzle_grid")
-        .min_col_width(32.0)
-        .min_row_height(32.0)
-        .show(ui, |ui| {
-            'outer: for _ in 0..13 {
-                for _ in 0..2 {
-                    match piece_counter {
-                        0 => add_piece_image!(ui, "../assets/yellow_01.png"),
-                        1 => add_piece_image!(ui, "../assets/yellow_02.png"),
-                        2 => add_piece_image!(ui, "../assets/yellow_03.png"),
-                        3 => add_piece_image!(ui, "../assets/yellow_04.png"),
-                        4 => add_piece_image!(ui, "../assets/yellow_05.png"),
-                        5 => add_piece_image!(ui, "../assets/yellow_06.png"),
-                        6 => add_piece_image!(ui, "../assets/yellow_07.png"),
-                        7 => add_piece_image!(ui, "../assets/yellow_08.png"),
-                        8 => add_piece_image!(ui, "../assets/yellow_09.png"),
-                        _ => add_piece_image!(ui, "../assets/puzzhagoras_icon.png"),
-                    };
-                    piece_counter += 1;
-                    if piece_counter >= num_pieces {
-                        break 'outer;
-                    }
-                }
-                ui.end_row();
-            }
-        });
-}
-
-fn puzzle(ui: &mut egui::Ui, width: usize, height: usize) {
-    egui::Grid::new("puzzle_grid")
-        .min_col_width(64.0)
-        .min_row_height(64.0)
-        .show(ui, |ui| {
-            for _ in 0..height {
-                for _ in 0..width {
-                    ui.add(egui::Image::new(egui::include_image!(
-                        "../assets/puzzhagoras_icon.png"
-                    )));
-                }
-                ui.end_row();
-            }
-        });
 }
 
 fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
