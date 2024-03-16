@@ -81,6 +81,10 @@ pub struct Piece {
     color: Color,
     #[serde(skip)]
     pub used: bool,
+    #[serde(skip)]
+    pub flipped: bool,
+    #[serde(skip)]
+    pub rotations: usize,
 }
 
 impl Piece {
@@ -89,11 +93,14 @@ impl Piece {
             connectors,
             color: Color::Yellow,
             used: false,
+            flipped: false,
+            rotations: 0,
         }
     }
 
     pub fn rotate(&mut self) {
         self.connectors.rotate_right(1);
+        self.rotations += 1;
     }
 
     pub fn flip(&mut self) {
@@ -104,6 +111,7 @@ impl Piece {
                 ConnectorOffset::Flat => ConnectorOffset::Flat,
             };
         }
+        self.flipped = !self.flipped;
     }
 
     pub fn get_connector(&self, index: usize) -> Connector {

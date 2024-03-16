@@ -28,6 +28,10 @@ impl Solver {
         self.puzzle.board.get_squares()
     }
 
+    pub fn get_piece(&self, piece_id: usize) -> Piece {
+        self.puzzle.pieces[piece_id]
+    }
+
     /// Make the next step in the puzzle, backtrack if there is no way forward.
     ///
     /// # Returns
@@ -84,7 +88,7 @@ impl Solver {
     ///
     /// `PuzzleState` of the puzzle after this step.
     ///
-    pub fn forward(&mut self, start_piece_id: usize) -> PuzzleState {
+    fn forward(&mut self, start_piece_id: usize) -> PuzzleState {
         let added = self.check_pieces(start_piece_id);
         let size = self.puzzle.board.get_size();
 

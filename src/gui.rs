@@ -167,13 +167,17 @@ impl PuzzhagorasApp {
                 for x in 0..self.height as usize {
                     for y in 0..self.width as usize {
                         let position = x * self.width as usize + y;
-                        if squares[position].is_empty() {
+                        if position >= squares.len() || squares[position].is_empty() {
                             ui.add(self.icon.clone());
                         } else {
                             let piece_id = squares[position].piece_id();
-                            if piece_id < 8 {
+                            if piece_id < 9 {
                                 //TODO: temporary until all pieces are there
-                                ui.add(self.piece_images[piece_id].clone());
+                                let image = self.piece_images[piece_id].clone();
+                                let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
+                                // 90 degress is approx 1.57 radians
+                                let angle = (piece.rotations % 4) as f32 * 1.57;
+                                ui.add(image.rotate(angle, egui::Vec2::splat(0.5)));
                             } else {
                                 ui.add(self.icon.clone());
                             }
