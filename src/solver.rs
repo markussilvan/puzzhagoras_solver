@@ -1,6 +1,6 @@
 use crate::{
     piece::{Connector, Piece},
-    puzzle::{Board, Puzzle},
+    puzzle::{Board, Puzzle, Square},
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -24,6 +24,10 @@ impl Solver {
         }
     }
 
+    pub fn get_board_squares(&self) -> Vec<Square> {
+        self.puzzle.board.get_squares()
+    }
+
     /// Make the next step in the puzzle, backtrack if there is no way forward.
     ///
     /// # Returns
@@ -39,7 +43,7 @@ impl Solver {
             if !empty {
                 // we are backtracking, take the old piece off the board
                 println!("Backtracking...");
-                self.puzzle.board.remove_piece(self.position, piece_id);
+                self.puzzle.board.remove_piece(self.position);
                 self.puzzle.pieces[piece_id].used = false;
                 piece_id += 1;
             }
@@ -71,6 +75,15 @@ impl Solver {
     }
 
     /// Try to make the next step in the puzzle.
+    ///
+    /// # Arguments
+    ///
+    /// `start_piece_id`  - piece to continue from, previous pieces are ignored
+    ///
+    /// # Returns
+    ///
+    /// `PuzzleState` of the puzzle after this step.
+    ///
     pub fn forward(&mut self, start_piece_id: usize) -> PuzzleState {
         let added = self.check_pieces(start_piece_id);
         let size = self.puzzle.board.get_size();
@@ -78,7 +91,6 @@ impl Solver {
         if added {
             if self.position >= size {
                 println!("Puzzle solved!");
-                //TODO: how to handle this properly?
                 PuzzleState::Solved
             } else {
                 PuzzleState::Progressing
@@ -91,7 +103,11 @@ impl Solver {
     }
 
     /// Check, in order, if any free piece fits as the next piece in the puzzle.
-    /// If so, make the play
+    /// If so, make the play.
+    ///
+    /// # Arguments
+    ///
+    /// `start_piece_id`  - piece to continue from, previous pieces are ignored
     ///
     /// # Returns
     ///
@@ -105,7 +121,7 @@ impl Solver {
                 continue;
             }
             println!("Checking piece: {}", piece_id);
-            if Self::add_if_fits(&mut self.puzzle, self.position, piece_id) {
+            if self.add_if_fits(piece_id) {
                 println!("Added piece {}", piece_id);
                 self.position += 1;
                 return true;
@@ -121,16 +137,20 @@ impl Solver {
     ///
     /// Add it to the puzzle if it fits.
     ///
+    /// # Arguments
+    ///
+    /// `piece_id`  - piece to check if it fits
+    ///
     /// # Returns
     ///
     /// `true`  if a piece was added to the puzzle
     /// `false` if the piece doesn't fit
     ///
-    fn add_if_fits(puzzle: &mut Puzzle, position: usize, piece_id: usize) -> bool {
+    fn add_if_fits(&mut self, piece_id: usize) -> bool {
         let mut fits = false;
 
-        let connectors_around = puzzle.get_connectors_around(position);
-        let piece = &mut puzzle.pieces[piece_id];
+        let connectors_around = self.puzzle.get_connectors_around(self.position);
+        let piece = &mut self.puzzle.pieces[piece_id];
 
         // try the piece in all it's rotations (including flipping it)
         for _ in 0..2 {
@@ -153,9 +173,12 @@ impl Solver {
         }
 
         if fits {
-            println!("Adding the piece to the board (position: {position})");
-            puzzle.board.add_piece(position, piece_id);
-            puzzle.pieces[piece_id].used = true;
+            println!(
+                "Adding the piece to the board (position: {})",
+                self.position
+            );
+            self.puzzle.board.add_piece(self.position, piece_id);
+            self.puzzle.pieces[piece_id].used = true;
         }
 
         fits

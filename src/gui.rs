@@ -139,7 +139,12 @@ impl PuzzhagorasApp {
             .show(ui, |ui| {
                 'outer: for _ in 0..13 {
                     for _ in 0..2 {
-                        ui.add(self.piece_images[piece_id].clone());
+                        if piece_id > 8 {
+                            //TODO: temporary, until other pieces are created
+                            ui.add(self.icon.clone());
+                        } else {
+                            ui.add(self.piece_images[piece_id].clone());
+                        }
                         piece_id += 1;
                         if piece_id >= num_pieces {
                             break 'outer;
@@ -151,13 +156,28 @@ impl PuzzhagorasApp {
     }
 
     fn puzzle(&self, ui: &mut egui::Ui) {
+        if self.solver.is_none() {
+            return;
+        }
+        let squares = self.solver.as_ref().unwrap().get_board_squares();
         egui::Grid::new("puzzle_grid")
             .min_col_width(64.0)
             .min_row_height(64.0)
             .show(ui, |ui| {
-                for _ in 0..self.height as usize {
-                    for _ in 0..self.width as usize {
-                        ui.add(self.icon.clone());
+                for x in 0..self.height as usize {
+                    for y in 0..self.width as usize {
+                        let position = x * self.width as usize + y;
+                        if squares[position].is_empty() {
+                            ui.add(self.icon.clone());
+                        } else {
+                            let piece_id = squares[position].piece_id();
+                            if piece_id < 8 {
+                                //TODO: temporary until all pieces are there
+                                ui.add(self.piece_images[piece_id].clone());
+                            } else {
+                                ui.add(self.icon.clone());
+                            }
+                        }
                     }
                     ui.end_row();
                 }

@@ -32,6 +32,14 @@ impl Square {
             piece_id: 0,
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.empty
+    }
+
+    pub fn piece_id(&self) -> usize {
+        self.piece_id
+    }
 }
 
 #[derive(Debug)]
@@ -65,9 +73,13 @@ impl Board {
         self.squares[position].empty = false;
     }
 
-    pub fn remove_piece(&mut self, position: usize, piece_id: usize) {
+    pub fn remove_piece(&mut self, position: usize) {
         self.squares[position].piece_id = 0;
         self.squares[position].empty = true;
+    }
+
+    pub fn get_squares(&self) -> Vec<Square> {
+        self.squares.clone()
     }
 }
 
