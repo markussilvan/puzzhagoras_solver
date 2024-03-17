@@ -141,19 +141,19 @@ impl PuzzhagorasApp {
 
     fn pieces(&self, ui: &mut egui::Ui) {
         let mut piece_id = 0;
-        let num_pieces = match self.piece_set {
-            PieceSet::Yellow => 9,
-            PieceSet::Green => 16,
-            PieceSet::Both => 25,
+        let (num_pieces, piece_offset) = match self.piece_set {
+            PieceSet::Yellow => (9, 0),
+            PieceSet::Green => (16, 9),
+            PieceSet::Both => (25, 0),
         };
         ui.heading("Pieces");
-        egui::Grid::new("puzzle_grid")
+        egui::Grid::new("pieces_grid")
             .min_col_width(32.0)
             .min_row_height(32.0)
             .show(ui, |ui| {
                 'outer: for _ in 0..13 {
                     for _ in 0..2 {
-                        ui.add(self.piece_images[piece_id].clone());
+                        ui.add(self.piece_images[piece_id + piece_offset].clone());
                         piece_id += 1;
                         if piece_id >= num_pieces {
                             break 'outer;
@@ -168,7 +168,15 @@ impl PuzzhagorasApp {
         if self.solver.is_none() {
             return;
         }
+
+        let (num_pieces, piece_offset) = match self.piece_set {
+            PieceSet::Yellow => (9, 0),
+            PieceSet::Green => (16, 9),
+            PieceSet::Both => (25, 0),
+        };
+
         let squares = self.solver.as_ref().unwrap().get_board_squares();
+
         egui::Grid::new("puzzle_grid")
             .min_col_width(64.0)
             .min_row_height(64.0)
@@ -180,7 +188,7 @@ impl PuzzhagorasApp {
                             ui.add(self.icon.clone());
                         } else {
                             let piece_id = squares[position].piece_id();
-                            let image = self.piece_images[piece_id].clone();
+                            let image = self.piece_images[piece_id + piece_offset].clone();
                             let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
                             // 90 degress is approx 1.57 radians
                             let angle = (piece.rotations % 4) as f32 * 1.57;
