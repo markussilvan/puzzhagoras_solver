@@ -88,6 +88,7 @@ impl Piece {
     }
 
     pub fn flip(&mut self) {
+        // swap connector offets
         for connector in self.connectors.iter_mut() {
             connector.offset = match connector.offset {
                 ConnectorOffset::Left => ConnectorOffset::Right,
@@ -95,6 +96,13 @@ impl Piece {
                 ConnectorOffset::Flat => ConnectorOffset::Flat,
             };
         }
+
+        // swap left and right side connectors
+        let temp = self.connectors[0];
+        self.connectors[0] = self.connectors[2];
+        self.connectors[2] = temp;
+
+        // mark that piece is flipped (or returned to original orientation)
         self.flipped = !self.flipped;
     }
 
