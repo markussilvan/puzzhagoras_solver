@@ -25,6 +25,7 @@ pub struct PuzzhagorasApp {
 impl Default for PuzzhagorasApp {
     fn default() -> Self {
         let images = vec![
+            // yellow pieces
             egui::Image::new(egui::include_image!("../assets/yellow_01.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_02.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_03.png")),
@@ -34,6 +35,23 @@ impl Default for PuzzhagorasApp {
             egui::Image::new(egui::include_image!("../assets/yellow_07.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_08.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_09.png")),
+            // green pieces
+            egui::Image::new(egui::include_image!("../assets/green_00.png")),
+            egui::Image::new(egui::include_image!("../assets/green_01.png")),
+            egui::Image::new(egui::include_image!("../assets/green_02.png")),
+            egui::Image::new(egui::include_image!("../assets/green_03.png")),
+            egui::Image::new(egui::include_image!("../assets/green_04.png")),
+            egui::Image::new(egui::include_image!("../assets/green_05.png")),
+            egui::Image::new(egui::include_image!("../assets/green_06.png")),
+            egui::Image::new(egui::include_image!("../assets/green_07.png")),
+            egui::Image::new(egui::include_image!("../assets/green_08.png")),
+            egui::Image::new(egui::include_image!("../assets/green_09.png")),
+            egui::Image::new(egui::include_image!("../assets/green_10.png")),
+            egui::Image::new(egui::include_image!("../assets/green_11.png")),
+            egui::Image::new(egui::include_image!("../assets/green_12.png")),
+            egui::Image::new(egui::include_image!("../assets/green_13.png")),
+            egui::Image::new(egui::include_image!("../assets/green_14.png")),
+            egui::Image::new(egui::include_image!("../assets/green_15.png")),
         ];
         Self {
             width: 3.0,
@@ -139,12 +157,7 @@ impl PuzzhagorasApp {
             .show(ui, |ui| {
                 'outer: for _ in 0..13 {
                     for _ in 0..2 {
-                        if piece_id > 8 {
-                            //TODO: temporary, until other pieces are created
-                            ui.add(self.icon.clone());
-                        } else {
-                            ui.add(self.piece_images[piece_id].clone());
-                        }
+                        ui.add(self.piece_images[piece_id].clone());
                         piece_id += 1;
                         if piece_id >= num_pieces {
                             break 'outer;
@@ -171,16 +184,11 @@ impl PuzzhagorasApp {
                             ui.add(self.icon.clone());
                         } else {
                             let piece_id = squares[position].piece_id();
-                            if piece_id < 9 {
-                                //TODO: temporary until all pieces are there
-                                let image = self.piece_images[piece_id].clone();
-                                let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
-                                // 90 degress is approx 1.57 radians
-                                let angle = (piece.rotations % 4) as f32 * 1.57;
-                                ui.add(image.rotate(angle, egui::Vec2::splat(0.5)));
-                            } else {
-                                ui.add(self.icon.clone());
-                            }
+                            let image = self.piece_images[piece_id].clone();
+                            let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
+                            // 90 degress is approx 1.57 radians
+                            let angle = (piece.rotations % 4) as f32 * 1.57;
+                            ui.add(image.rotate(angle, egui::Vec2::splat(0.5)));
                         }
                     }
                     ui.end_row();
