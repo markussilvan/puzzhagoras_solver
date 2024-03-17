@@ -1,6 +1,6 @@
 use crate::{
-    piece::{Connector, Piece},
-    puzzle::{Board, Puzzle, Square},
+    piece::Piece,
+    puzzle::{Puzzle, Square},
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -54,10 +54,10 @@ impl Solver {
             piece_id
         };
 
-        match self.forward(start_piece_id) {
+        let state = self.forward(start_piece_id);
+        match state {
             PuzzleState::Progressing => {
                 println!("State:\n{}", self.puzzle);
-                return PuzzleState::Progressing;
             }
             PuzzleState::Backtrack => {
                 if self.position == 0 {
@@ -67,15 +67,13 @@ impl Solver {
                     return PuzzleState::Unsolvable;
                 }
                 self.position -= 1;
-                return PuzzleState::Progressing;
             }
-            PuzzleState::Solved => {
-                return PuzzleState::Solved;
-            }
-            PuzzleState::Unsolvable => {
-                return PuzzleState::Unsolvable;
+            _ => {
+                // nothing special to do for the other states
             }
         }
+
+        state
     }
 
     /// Try to make the next step in the puzzle.
@@ -168,7 +166,7 @@ impl Solver {
                 piece.rotate();
             }
 
-            if fits == true {
+            if fits {
                 break;
             }
 

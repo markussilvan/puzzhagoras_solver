@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use super::piece::{Connector, ConnectorGender, ConnectorOffset, ConnectorType, Piece};
+use super::piece::{Connector, Piece};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Dimensions {
@@ -90,7 +90,7 @@ impl std::fmt::Display for Board {
                 let position = y * self.dimensions.width + x;
                 write!(f, "| {:>2} |", self.squares[position].piece_id)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         Ok(())
     }
@@ -171,6 +171,7 @@ impl Puzzle {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn write_pieces_to_file(&self, filename: String) -> std::io::Result<()> {
         let file = File::create(filename)?;
         let mut writer = BufWriter::new(file);
@@ -182,8 +183,7 @@ impl Puzzle {
 
 impl std::fmt::Display for Puzzle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.board);
-        //TODO: also print a list of available pieces
+        write!(f, "{}", self.board)?;
         Ok(())
     }
 }
@@ -213,72 +213,6 @@ impl PuzzleBuilder {
         self
     }
 
-    pub fn with_yellow_corner_pieces(&mut self) -> &mut Self {
-        let mut pieces = Vec::new();
-
-        let flat = Connector::flat();
-
-        let female_small_left = Connector::new(
-            ConnectorGender::Female,
-            ConnectorType::Small,
-            ConnectorOffset::Left,
-        );
-        let male_large_right = Connector::new(
-            ConnectorGender::Male,
-            ConnectorType::Large,
-            ConnectorOffset::Right,
-        );
-        let connectors = [
-            flat.clone(),
-            flat.clone(),
-            female_small_left.clone(),
-            male_large_right.clone(),
-        ];
-        let piece = Piece::new(connectors);
-        pieces.push(piece);
-
-        let male_small_right = Connector::new(
-            ConnectorGender::Male,
-            ConnectorType::Small,
-            ConnectorOffset::Right,
-        );
-        let connectors = [
-            flat.clone(),
-            flat.clone(),
-            female_small_left.clone(),
-            male_small_right.clone(),
-        ];
-        let piece = Piece::new(connectors);
-        pieces.push(piece);
-
-        let female_large_left = Connector::new(
-            ConnectorGender::Female,
-            ConnectorType::Large,
-            ConnectorOffset::Left,
-        );
-        let connectors = [
-            flat.clone(),
-            flat.clone(),
-            female_large_left.clone(),
-            male_small_right.clone(),
-        ];
-        let piece = Piece::new(connectors);
-        pieces.push(piece);
-
-        let connectors = [
-            flat.clone(),
-            flat.clone(),
-            male_small_right.clone(),
-            female_small_left.clone(),
-        ];
-        let piece = Piece::new(connectors);
-        pieces.push(piece);
-
-        self.pieces = Some(pieces);
-
-        self
-    }
-
     pub fn build(&mut self) -> Puzzle {
         let dimensions = self.dimensions.as_ref().unwrap().clone();
         let mut puzzle = Puzzle::new(dimensions);
@@ -288,7 +222,7 @@ impl PuzzleBuilder {
         }
 
         if self.filename.is_some() {
-            puzzle.read_pieces_from_file(self.filename.as_ref().unwrap().clone());
+            let _ = puzzle.read_pieces_from_file(self.filename.as_ref().unwrap().clone());
         }
 
         puzzle

@@ -34,14 +34,6 @@ pub struct Connector {
 }
 
 impl Connector {
-    pub fn new(gender: ConnectorGender, ctype: ConnectorType, offset: ConnectorOffset) -> Self {
-        Self {
-            gender,
-            ctype,
-            offset,
-        }
-    }
-
     pub fn flat() -> Connector {
         Connector {
             gender: ConnectorGender::Flat,
@@ -51,15 +43,17 @@ impl Connector {
     }
 
     pub fn fits(&self, other: &Connector) -> bool {
+        #[allow(clippy::needless_bool)]
+        #[allow(clippy::if_same_then_else)]
         if self.gender == ConnectorGender::Flat && other.gender == ConnectorGender::Flat {
             true
-        } else if (self.gender == other.gender)
-            || (self.ctype != other.ctype)
-            || (self.offset == other.offset)
+        } else if (self.gender != other.gender)
+            && (self.ctype == other.ctype)
+            && (self.offset != other.offset)
         {
-            false
-        } else {
             true
+        } else {
+            false
         }
     }
 }
@@ -88,16 +82,6 @@ pub struct Piece {
 }
 
 impl Piece {
-    pub fn new(connectors: [Connector; 4]) -> Self {
-        Self {
-            connectors,
-            color: Color::Yellow,
-            used: false,
-            flipped: false,
-            rotations: 0,
-        }
-    }
-
     pub fn rotate(&mut self) {
         self.connectors.rotate_right(1);
         self.rotations += 1;
@@ -115,13 +99,13 @@ impl Piece {
     }
 
     pub fn get_connector(&self, index: usize) -> Connector {
-        self.connectors[index].clone()
+        self.connectors[index]
     }
 
     pub fn fits(&self, connectors_around: &[Option<Connector>; 4]) -> bool {
-        for i in 0..4 {
-            if let Some(conn) = connectors_around[i] {
-                if !self.get_connector(i).fits(&conn) {
+        for (i, connector_opt) in connectors_around.iter().enumerate() {
+            if let Some(conn) = connector_opt {
+                if !self.get_connector(i).fits(conn) {
                     println!("Piece doesn't fit on {i} side");
                     return false;
                 }

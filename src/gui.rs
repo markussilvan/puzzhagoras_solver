@@ -2,7 +2,7 @@ use eframe::egui;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    puzzle::{Dimensions, Puzzle, PuzzleBuilder},
+    puzzle::{Dimensions, PuzzleBuilder},
     solver::{PuzzleState, Solver},
 };
 
@@ -128,16 +128,12 @@ impl PuzzhagorasApp {
 
                 let mut i = 0;
                 let mut state = PuzzleState::Progressing;
-                while state == PuzzleState::Progressing {
+                while state == PuzzleState::Progressing || state == PuzzleState::Backtrack {
                     i += 1;
                     println!("Step {i}");
                     state = self.solver.as_mut().unwrap().step();
                 }
 
-                //puzzle.write_pieces_to_file("pieces.json".to_string());
-
-                //println!("Board:");
-                //println!("{}", self.solver.as_ref().unwrap().puzzle);
                 println!("Final state: {state:?}");
             }
         });
