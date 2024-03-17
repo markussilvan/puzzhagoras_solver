@@ -192,7 +192,19 @@ impl PuzzhagorasApp {
                             let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
                             // 90 degress is approx 1.57 radians
                             let angle = (piece.rotations % 4) as f32 * 1.57;
-                            ui.add(image.rotate(angle, egui::Vec2::splat(0.5)));
+                            let uv_rect = if piece.flipped {
+                                // flip image horizontally
+                                egui::Rect::from_min_max(
+                                    egui::Pos2::new(0.0, 1.0),
+                                    egui::Pos2::new(1.0, 0.0),
+                                )
+                            } else {
+                                egui::Rect::from_min_max(
+                                    egui::Pos2::new(0.0, 0.0),
+                                    egui::Pos2::new(1.0, 1.0),
+                                )
+                            };
+                            ui.add(image.rotate(angle, egui::Vec2::splat(0.5)).uv(uv_rect));
                         }
                     }
                     ui.end_row();
