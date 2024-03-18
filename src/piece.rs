@@ -98,9 +98,7 @@ impl Piece {
         }
 
         // swap left and right side connectors
-        let temp = self.connectors[0];
-        self.connectors[0] = self.connectors[2];
-        self.connectors[2] = temp;
+        self.connectors.swap(0, 2);
 
         // mark that piece is flipped (or returned to original orientation)
         self.flipped = !self.flipped;

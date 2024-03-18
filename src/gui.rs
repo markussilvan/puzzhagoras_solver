@@ -6,7 +6,7 @@ use crate::{
     solver::{PuzzleState, Solver},
 };
 
-#[derive(Deserialize, Serialize, PartialEq)]
+#[derive(Deserialize, Serialize, PartialEq, Clone)]
 enum PieceSet {
     Yellow,
     Green,
@@ -84,6 +84,8 @@ impl PuzzhagorasApp {
             ui.vertical(|ui| {
                 ui.heading("Dimensions");
 
+                let old_width = self.width;
+                let old_height = self.height;
                 egui::Grid::new("dimensions_grid").show(ui, |ui| {
                     ui.label("Width ");
                     ui.add(egui::Slider::new(&mut self.width, 2.0..=5.0).integer());
@@ -93,16 +95,25 @@ impl PuzzhagorasApp {
                     ui.add(egui::Slider::new(&mut self.height, 2.0..=5.0).integer());
                     ui.end_row();
                 });
+
+                if self.width != old_width || self.height != old_height {
+                    self.solver = None;
+                }
             });
 
             ui.add(egui::Separator::spacing(egui::Separator::default(), 50.0));
 
+            let old_piece_set = self.piece_set.clone();
             ui.vertical(|ui| {
                 ui.heading("Piece set");
                 ui.radio_value(&mut self.piece_set, PieceSet::Yellow, "Yellow");
                 ui.radio_value(&mut self.piece_set, PieceSet::Green, "Green");
                 ui.radio_value(&mut self.piece_set, PieceSet::Both, "Both");
             });
+
+            if self.piece_set != old_piece_set {
+                self.solver = None;
+            }
         });
 
         ui.horizontal(|ui| {
@@ -141,11 +152,8 @@ impl PuzzhagorasApp {
 
     fn pieces(&self, ui: &mut egui::Ui) {
         let mut piece_id = 0;
-        let (num_pieces, piece_offset) = match self.piece_set {
-            PieceSet::Yellow => (9, 0),
-            PieceSet::Green => (16, 9),
-            PieceSet::Both => (25, 0),
-        };
+        let (num_pieces, piece_offset) = get_piece_set_info(&self.piece_set);
+
         ui.heading("Pieces");
         egui::Grid::new("pieces_grid")
             .min_col_width(32.0)
@@ -169,12 +177,7 @@ impl PuzzhagorasApp {
             return;
         }
 
-        let (num_pieces, piece_offset) = match self.piece_set {
-            PieceSet::Yellow => (9, 0),
-            PieceSet::Green => (16, 9),
-            PieceSet::Both => (25, 0),
-        };
-
+        let (num_pieces, piece_offset) = get_piece_set_info(&self.piece_set);
         let squares = self.solver.as_ref().unwrap().get_board_squares();
 
         egui::Grid::new("puzzle_grid")
@@ -188,23 +191,15 @@ impl PuzzhagorasApp {
                             ui.add(self.icon.clone());
                         } else {
                             let piece_id = squares[position].piece_id();
-                            let image = self.piece_images[piece_id + piece_offset].clone();
-                            let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
-                            // 90 degress is approx 1.57 radians
-                            let mut angle = (piece.rotations % 4) as f32 * 1.57;
-                            let uv_rect = if piece.flipped {
-                                // flip image horizontally
-                                angle = (piece.rotations % 4) as f32 * 1.57 + 3.14;
-                                egui::Rect::from_min_max(
-                                    egui::Pos2::new(0.0, 1.0),
-                                    egui::Pos2::new(1.0, 0.0),
-                                )
+                            let image = if piece_id < num_pieces {
+                                self.piece_images[piece_id + piece_offset].clone()
                             } else {
-                                egui::Rect::from_min_max(
-                                    egui::Pos2::new(0.0, 0.0),
-                                    egui::Pos2::new(1.0, 1.0),
-                                )
+                                // this should never happen, but just in case...
+                                self.icon.clone()
                             };
+                            let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
+                            let (angle, uv_rect) =
+                                get_piece_image_transformations(piece.rotations, piece.flipped);
                             ui.add(image.rotate(angle, egui::Vec2::splat(0.5)).uv(uv_rect));
                         }
                     }
@@ -241,7 +236,6 @@ impl eframe::App for PuzzhagorasApp {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
             self.settings(ui);
             ui.separator();
 
@@ -268,4 +262,48 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
         );
         ui.label(".");
     });
+}
+
+/// Get information related to the used piece set
+///
+/// # Arguments
+/// `piece_set` - the piece set to use
+///
+/// # Returns
+///
+/// A tuple containing the number of pieces in the set and
+/// the offset of the first piece in the global list of pieces.
+///
+fn get_piece_set_info(piece_set: &PieceSet) -> (usize, usize) {
+    match piece_set {
+        PieceSet::Yellow => (9, 0),
+        PieceSet::Green => (16, 9),
+        PieceSet::Both => (25, 0),
+    }
+}
+
+/// Calculate a rotation angle and optional flipping Rect for a piece's image
+///
+/// # Arguments
+///
+/// - `rotations`   - how many times the piece has been rotated
+/// - `flip`        - has the piece been flipped related to it's original orientation
+///
+/// # Returns
+///
+/// A tuple containing the rotation angle in radians and a UV rectangle.
+///
+fn get_piece_image_transformations(rotations: usize, flip: bool) -> (f32, egui::Rect) {
+    // angles are in radians, so 90 degrees is PI/2 rad
+    let mut angle = (rotations % 4) as f32 * (std::f32::consts::PI / 2.0);
+    let uv_rect = if flip {
+        // flip image horizontally, and rotate
+        angle = (rotations % 4) as f32 * (std::f32::consts::PI / 2.0) + std::f32::consts::PI;
+        egui::Rect::from_min_max(egui::Pos2::new(0.0, 1.0), egui::Pos2::new(1.0, 0.0))
+    } else {
+        // just rotate
+        egui::Rect::from_min_max(egui::Pos2::new(0.0, 0.0), egui::Pos2::new(1.0, 1.0))
+    };
+
+    (angle, uv_rect)
 }
