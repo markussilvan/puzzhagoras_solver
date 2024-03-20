@@ -12,6 +12,11 @@ use eframe::egui;
 // Main for the native application
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result<()> {
+    tracing_subscriber::fmt()
+        .compact()
+        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
+        .init();
+
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1024.0, 768.0])

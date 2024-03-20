@@ -1,5 +1,6 @@
 use eframe::egui;
 use serde::{Deserialize, Serialize};
+use tracing::{debug, info};
 
 use crate::{
     puzzle::{Dimensions, PuzzleBuilder},
@@ -67,15 +68,7 @@ impl Default for PuzzhagorasApp {
 impl PuzzhagorasApp {
     /// Called once before the first frame.
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        // This is also where you can customize the look and feel of egui using
-        // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
-
-        // Load previous app state (if any).
-        // Note that you must enable the `persistence` feature for this to work.
-        //if let Some(storage) = cc.storage {
-        //    return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-        //}
-
+        tracing::info!("Initializing GUI...");
         Default::default()
     }
 
@@ -120,7 +113,7 @@ impl PuzzhagorasApp {
             if ui.button("Start solve").clicked() {
                 let dimensions = Dimensions::new(self.width as usize, self.height as usize);
 
-                println!(
+                info!(
                     "Starting with width {} and height {}...",
                     dimensions.width, dimensions.height
                 );
@@ -141,11 +134,11 @@ impl PuzzhagorasApp {
                 let mut state = PuzzleState::Progressing;
                 while state == PuzzleState::Progressing || state == PuzzleState::Backtrack {
                     i += 1;
-                    println!("Step {i}");
+                    debug!("Step {i}");
                     state = self.solver.as_mut().unwrap().step();
                 }
 
-                println!("Final state: {state:?}");
+                info!("Final state: {state:?}");
             }
         });
     }

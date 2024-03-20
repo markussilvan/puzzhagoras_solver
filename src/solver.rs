@@ -1,3 +1,5 @@
+use tracing::{debug, info, trace};
+
 use crate::{
     piece::Piece,
     puzzle::{Puzzle, Square},
@@ -40,13 +42,13 @@ impl Solver {
     /// `false` if there is no play to make (puzzle is either solved or unsolvable)
     ///
     pub fn step(&mut self) -> PuzzleState {
-        println!("Stepping...");
+        trace!("Stepping...");
 
         let start_piece_id = {
             let (mut piece_id, empty) = self.puzzle.board.get_piece(self.position);
             if !empty {
                 // we are backtracking, take the old piece off the board
-                println!("Backtracking...");
+                trace!("Backtracking...");
                 self.puzzle.board.remove_piece(self.position);
                 self.puzzle.pieces[piece_id].used = false;
                 piece_id += 1;
@@ -57,7 +59,7 @@ impl Solver {
         let state = self.forward(start_piece_id);
         match state {
             PuzzleState::Progressing => {
-                println!("State:\n{}", self.puzzle);
+                trace!("State:\n{}", self.puzzle);
             }
             PuzzleState::Backtrack => {
                 if self.position == 0 {
@@ -92,7 +94,7 @@ impl Solver {
 
         if added {
             if self.position >= size {
-                println!("Puzzle solved!");
+                info!("Puzzle solved!");
                 PuzzleState::Solved
             } else {
                 PuzzleState::Progressing
@@ -119,16 +121,16 @@ impl Solver {
     fn check_pieces(&mut self, start_piece_id: usize) -> bool {
         for piece_id in start_piece_id..self.puzzle.pieces.len() {
             if self.puzzle.pieces[piece_id].used {
-                println!("Piece is already on board, skip it");
+                trace!("Piece is already on board, skip it");
                 continue;
             }
-            println!("Checking piece: {}", piece_id);
+            trace!("Checking piece: {}", piece_id);
             if self.add_if_fits(piece_id) {
-                println!("Added piece {}", piece_id);
+                debug!("Added piece {} to position {}", piece_id, self.position);
                 self.position += 1;
                 return true;
             } else {
-                println!("Doesn't fit");
+                trace!("Doesn't fit");
             }
         }
 
@@ -158,11 +160,11 @@ impl Solver {
         for _ in 0..2 {
             for _ in 0..4 {
                 if piece.fits(&connectors_around) {
-                    println!("Piece fits on all sides");
+                    trace!("Piece fits on all sides");
                     fits = true;
                     break;
                 }
-                println!("Rotating the piece");
+                trace!("Rotating the piece");
                 piece.rotate();
             }
 
@@ -170,12 +172,12 @@ impl Solver {
                 break;
             }
 
-            println!("Flipping the piece");
+            trace!("Flipping the piece");
             piece.flip();
         }
 
         if fits {
-            println!(
+            trace!(
                 "Adding the piece to the board (position: {})",
                 self.position
             );

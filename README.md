@@ -3,7 +3,7 @@
 A brute force backtracking solver for all variations of the *Puzzhagoras*
 jigsaw puzzle by Vesa Timonen.
 
-## The puzzle
+## The Puzzle
 
 A jigsaw puzzle which only has pieces in two colors. Pieces don't form a
 picture. The goal is to make solid rectangles of different sizes.
@@ -32,3 +32,10 @@ The graphics have been done with [PiskelApp](https://www.piskelapp.com).
 With a release build, on an average laptop, the any of the configurations can
 be solved in an instant. With a debug build, with lots of debug prints
 enabled, 5x5 solve can take even 15 minutes.
+
+### Debug Prints
+
+Use the `RUST_LOG` environment variable to control the logging levels of
+different components. For example, to set the log level to `trace` for
+the application, and log level `error` for libraries it uses, run the
+application with `RUST_LOG=puzzhagoras_solver=trace,error cargo run`.

@@ -112,7 +112,6 @@ impl Piece {
         for (i, connector_opt) in connectors_around.iter().enumerate() {
             if let Some(conn) = connector_opt {
                 if !self.get_connector(i).fits(conn) {
-                    println!("Piece doesn't fit on {i} side");
                     return false;
                 }
             }
