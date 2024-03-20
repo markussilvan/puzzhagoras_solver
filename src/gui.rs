@@ -26,6 +26,7 @@ impl Default for PuzzhagorasApp {
     fn default() -> Self {
         let images = vec![
             // yellow pieces
+            egui::Image::new(egui::include_image!("../assets/yellow_00.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_01.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_02.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_03.png")),
@@ -34,7 +35,6 @@ impl Default for PuzzhagorasApp {
             egui::Image::new(egui::include_image!("../assets/yellow_06.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_07.png")),
             egui::Image::new(egui::include_image!("../assets/yellow_08.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_09.png")),
             // green pieces
             egui::Image::new(egui::include_image!("../assets/green_00.png")),
             egui::Image::new(egui::include_image!("../assets/green_01.png")),
