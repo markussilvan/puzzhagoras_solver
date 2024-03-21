@@ -25,35 +25,13 @@ pub struct PuzzhagorasApp {
 
 impl Default for PuzzhagorasApp {
     fn default() -> Self {
-        let images = vec![
-            // yellow pieces
-            egui::Image::new(egui::include_image!("../assets/yellow_00.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_01.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_02.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_03.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_04.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_05.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_06.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_07.png")),
-            egui::Image::new(egui::include_image!("../assets/yellow_08.png")),
-            // green pieces
-            egui::Image::new(egui::include_image!("../assets/green_00.png")),
-            egui::Image::new(egui::include_image!("../assets/green_01.png")),
-            egui::Image::new(egui::include_image!("../assets/green_02.png")),
-            egui::Image::new(egui::include_image!("../assets/green_03.png")),
-            egui::Image::new(egui::include_image!("../assets/green_04.png")),
-            egui::Image::new(egui::include_image!("../assets/green_05.png")),
-            egui::Image::new(egui::include_image!("../assets/green_06.png")),
-            egui::Image::new(egui::include_image!("../assets/green_07.png")),
-            egui::Image::new(egui::include_image!("../assets/green_08.png")),
-            egui::Image::new(egui::include_image!("../assets/green_09.png")),
-            egui::Image::new(egui::include_image!("../assets/green_10.png")),
-            egui::Image::new(egui::include_image!("../assets/green_11.png")),
-            egui::Image::new(egui::include_image!("../assets/green_12.png")),
-            egui::Image::new(egui::include_image!("../assets/green_13.png")),
-            egui::Image::new(egui::include_image!("../assets/green_14.png")),
-            egui::Image::new(egui::include_image!("../assets/green_15.png")),
-        ];
+        let images = puzzhagoras_solver_macros::include_piece_images!(
+            ;"../assets/yellow_",
+            9;
+            "../assets/green_",
+            16
+        );
+
         Self {
             width: 3.0,
             height: 3.0,
@@ -206,8 +184,6 @@ impl eframe::App for PuzzhagorasApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_zoom_factor(1.5);
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            // The top panel is often a good place for a menu bar:
-
             egui::menu::bar(ui, |ui| {
                 // NOTE: no File->Quit on web pages!
                 let is_web = cfg!(target_arch = "wasm32");
