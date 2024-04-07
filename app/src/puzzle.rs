@@ -171,6 +171,11 @@ impl Puzzle {
         Ok(())
     }
 
+    pub fn read_pieces_from_json(&mut self, json_str: &str) -> std::io::Result<()> {
+        self.pieces = serde_json::from_str(json_str)?;
+        Ok(())
+    }
+
     #[allow(dead_code)]
     pub fn write_pieces_to_file(&self, filename: String) -> std::io::Result<()> {
         let file = File::create(filename)?;
@@ -192,6 +197,7 @@ pub struct PuzzleBuilder {
     pieces: Option<Vec<Piece>>,
     dimensions: Option<Dimensions>,
     filename: Option<String>,
+    json: Option<&'static str>,
 }
 
 impl PuzzleBuilder {
@@ -200,6 +206,7 @@ impl PuzzleBuilder {
             pieces: None,
             dimensions: None,
             filename: None,
+            json: None,
         }
     }
 
@@ -208,8 +215,14 @@ impl PuzzleBuilder {
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_pieces_from_file(&mut self, filename: String) -> &mut Self {
         self.filename = Some(filename);
+        self
+    }
+
+    pub fn with_pieces_from_json(&mut self, json_str: &'static str) -> &mut Self {
+        self.json = Some(json_str);
         self
     }
 
@@ -223,6 +236,10 @@ impl PuzzleBuilder {
 
         if self.filename.is_some() {
             let _ = puzzle.read_pieces_from_file(self.filename.as_ref().unwrap().clone());
+        }
+
+        if self.json.is_some() {
+            let _ = puzzle.read_pieces_from_json(self.json.as_ref().unwrap());
         }
 
         puzzle

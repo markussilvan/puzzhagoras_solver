@@ -96,15 +96,15 @@ impl PuzzhagorasApp {
                     dimensions.width, dimensions.height
                 );
 
-                let pieces_file = match self.piece_set {
-                    PieceSet::Yellow => "yellow-pieces.json",
-                    PieceSet::Green => "green-pieces.json",
-                    PieceSet::Both => "both-pieces.json",
+                let pieces_data = match self.piece_set {
+                    PieceSet::Yellow => include_str!("../yellow-pieces.json"),
+                    PieceSet::Green => include_str!("../green-pieces.json"),
+                    PieceSet::Both => include_str!("../both-pieces.json"),
                 };
 
                 let puzzle = PuzzleBuilder::new()
                     .with_dimensions(dimensions)
-                    .with_pieces_from_file(pieces_file.to_string())
+                    .with_pieces_from_json(pieces_data)
                     .build();
                 self.solver = Some(Solver::new(puzzle));
 
