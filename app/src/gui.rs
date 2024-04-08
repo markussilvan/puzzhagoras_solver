@@ -1,6 +1,6 @@
 use eframe::egui;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::{
     puzzle::{Dimensions, PuzzleBuilder},
@@ -19,6 +19,8 @@ pub struct PuzzhagorasApp {
     height: f32,
     piece_set: PieceSet,
     solver: Option<Solver>,
+    show_progress: bool,
+    state: PuzzleState,
     icon: egui::Image<'static>,
     piece_images: Vec<egui::Image<'static>>,
 }
@@ -37,6 +39,8 @@ impl Default for PuzzhagorasApp {
             height: 3.0,
             piece_set: PieceSet::Yellow,
             solver: None,
+            show_progress: false,
+            state: PuzzleState::Idle,
             icon: egui::Image::new(egui::include_image!("../assets/puzzhagoras_icon.png")),
             piece_images: images,
         }
@@ -44,13 +48,12 @@ impl Default for PuzzhagorasApp {
 }
 
 impl PuzzhagorasApp {
-    /// Called once before the first frame.
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         tracing::info!("Initializing GUI...");
         Default::default()
     }
 
-    fn settings(&mut self, ui: &mut egui::Ui) {
+    fn settings(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
                 ui.heading("Dimensions");
@@ -72,7 +75,7 @@ impl PuzzhagorasApp {
                 }
             });
 
-            ui.add(egui::Separator::spacing(egui::Separator::default(), 50.0));
+            ui.add(egui::Separator::spacing(egui::Separator::default(), 40.0));
 
             let old_piece_set = self.piece_set.clone();
             ui.vertical(|ui| {
@@ -85,38 +88,25 @@ impl PuzzhagorasApp {
             if self.piece_set != old_piece_set {
                 self.solver = None;
             }
+
+            ui.add(egui::Separator::spacing(egui::Separator::default(), 40.0));
+
+            ui.vertical(|ui| {
+                ui.heading("Options");
+                ui.add(egui::Checkbox::new(
+                    &mut self.show_progress,
+                    "Show progress *",
+                ));
+                ui.add_space(23.0);
+                ui.add(egui::Label::new("* slows solving"));
+            });
         });
 
         ui.horizontal(|ui| {
             if ui.button("Start solve").clicked() {
-                let dimensions = Dimensions::new(self.width as usize, self.height as usize);
-
-                info!(
-                    "Starting with width {} and height {}...",
-                    dimensions.width, dimensions.height
-                );
-
-                let pieces_data = match self.piece_set {
-                    PieceSet::Yellow => include_str!("../yellow-pieces.json"),
-                    PieceSet::Green => include_str!("../green-pieces.json"),
-                    PieceSet::Both => include_str!("../both-pieces.json"),
-                };
-
-                let puzzle = PuzzleBuilder::new()
-                    .with_dimensions(dimensions)
-                    .with_pieces_from_json(pieces_data)
-                    .build();
-                self.solver = Some(Solver::new(puzzle));
-
-                let mut i = 0;
-                let mut state = PuzzleState::Progressing;
-                while state == PuzzleState::Progressing || state == PuzzleState::Backtrack {
-                    i += 1;
-                    debug!("Step {i}");
-                    state = self.solver.as_mut().unwrap().step();
-                }
-
-                info!("Final state: {state:?}");
+                self.start_solve();
+            } else {
+                self.step(ctx);
             }
         });
     }
@@ -178,6 +168,45 @@ impl PuzzhagorasApp {
                 }
             });
     }
+
+    fn start_solve(&mut self) {
+        let dimensions = Dimensions::new(self.width as usize, self.height as usize);
+
+        info!(
+            "Starting with width {} and height {}...",
+            dimensions.width, dimensions.height
+        );
+
+        let pieces_data = match self.piece_set {
+            PieceSet::Yellow => include_str!("../yellow-pieces.json"),
+            PieceSet::Green => include_str!("../green-pieces.json"),
+            PieceSet::Both => include_str!("../both-pieces.json"),
+        };
+
+        let puzzle = PuzzleBuilder::new()
+            .with_dimensions(dimensions)
+            .with_pieces_from_json(pieces_data)
+            .build();
+        self.solver = Some(Solver::new(puzzle));
+
+        self.state = PuzzleState::Progressing;
+    }
+
+    fn step(&mut self, ctx: &egui::Context) {
+        if self.show_progress {
+            if self.state == PuzzleState::Progressing || self.state == PuzzleState::Backtrack {
+                self.state = self.solver.as_mut().unwrap().step();
+                ctx.request_repaint();
+            } else {
+                info!("Final state: {:?}", self.state);
+            }
+        } else {
+            while self.state == PuzzleState::Progressing || self.state == PuzzleState::Backtrack {
+                self.state = self.solver.as_mut().unwrap().step();
+            }
+            info!("Final state: {:?}", self.state);
+        }
+    }
 }
 
 impl eframe::App for PuzzhagorasApp {
@@ -185,7 +214,6 @@ impl eframe::App for PuzzhagorasApp {
         ctx.set_zoom_factor(1.5);
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
-                // NOTE: no File->Quit on web pages!
                 let is_web = cfg!(target_arch = "wasm32");
                 if !is_web {
                     ui.menu_button("File", |ui| {
@@ -205,7 +233,7 @@ impl eframe::App for PuzzhagorasApp {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            self.settings(ui);
+            self.settings(ui, ctx);
             ui.separator();
 
             self.puzzle(ui);

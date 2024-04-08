@@ -7,6 +7,7 @@ use crate::{
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum PuzzleState {
+    Idle,
     Progressing,
     Backtrack,
     Solved,
