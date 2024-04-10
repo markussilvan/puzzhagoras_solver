@@ -1,11 +1,13 @@
-use std::{
-    fs::File,
-    io::{BufReader, BufWriter, Write},
-};
-
 use serde::{Deserialize, Serialize};
 
-use super::piece::{Connector, Piece};
+use super::piece::{Color, Connector, Piece};
+
+#[derive(Deserialize, Serialize, PartialEq, Clone, Copy)]
+pub enum PieceSet {
+    Yellow,
+    Green,
+    Both,
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Dimensions {
@@ -176,27 +178,6 @@ impl Puzzle {
         connectors
     }
 
-    pub fn read_pieces_from_file(&mut self, filename: String) -> std::io::Result<()> {
-        let file = File::open(filename)?;
-        let reader = BufReader::new(file);
-        self.pieces = serde_json::from_reader(reader)?;
-        Ok(())
-    }
-
-    pub fn read_pieces_from_json(&mut self, json_str: &str) -> std::io::Result<()> {
-        self.pieces = serde_json::from_str(json_str)?;
-        Ok(())
-    }
-
-    #[allow(dead_code)]
-    pub fn write_pieces_to_file(&self, filename: String) -> std::io::Result<()> {
-        let file = File::create(filename)?;
-        let mut writer = BufWriter::new(file);
-        serde_json::to_writer_pretty(&mut writer, &self.pieces)?;
-        writer.flush()?;
-        Ok(())
-    }
-
     fn get_connector_in_direction(
         &self,
         connectors: &mut [Option<Connector>; 4],
@@ -224,19 +205,17 @@ impl std::fmt::Display for Puzzle {
 }
 
 pub struct PuzzleBuilder {
-    pieces: Option<Vec<Piece>>,
     dimensions: Option<Dimensions>,
-    filename: Option<String>,
     json: Option<&'static str>,
+    piece_set: Option<PieceSet>,
 }
 
 impl PuzzleBuilder {
     pub fn new() -> Self {
         Self {
-            pieces: None,
             dimensions: None,
-            filename: None,
             json: None,
+            piece_set: None,
         }
     }
 
@@ -245,9 +224,8 @@ impl PuzzleBuilder {
         self
     }
 
-    #[allow(dead_code)]
-    pub fn with_pieces_from_file(&mut self, filename: String) -> &mut Self {
-        self.filename = Some(filename);
+    pub fn with_piece_set(&mut self, piece_set: PieceSet) -> &mut Self {
+        self.piece_set = Some(piece_set);
         self
     }
 
@@ -260,16 +238,19 @@ impl PuzzleBuilder {
         let dimensions = self.dimensions.as_ref().unwrap().clone();
         let mut puzzle = Puzzle::new(dimensions);
 
-        if self.pieces.is_some() {
-            puzzle.pieces = self.pieces.as_ref().unwrap().clone();
-        }
-
-        if self.filename.is_some() {
-            let _ = puzzle.read_pieces_from_file(self.filename.as_ref().unwrap().clone());
-        }
-
         if self.json.is_some() {
-            let _ = puzzle.read_pieces_from_json(self.json.as_ref().unwrap());
+            let Ok(mut pieces) = serde_json::from_str::<Vec<Piece>>(self.json.as_ref().unwrap())
+            else {
+                panic!("Invalid pieces JSON");
+            };
+
+            match self.piece_set.as_ref().unwrap() {
+                PieceSet::Yellow => pieces.retain(|x| x.color == Color::Yellow),
+                PieceSet::Green => pieces.retain(|x| x.color == Color::Green),
+                PieceSet::Both => {}
+            };
+
+            puzzle.pieces = pieces;
         }
 
         puzzle

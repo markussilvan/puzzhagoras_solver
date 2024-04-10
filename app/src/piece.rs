@@ -72,7 +72,7 @@ pub enum Color {
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Piece {
     connectors: [Connector; 4],
-    color: Color,
+    pub color: Color,
     #[serde(skip)]
     pub used: bool,
     #[serde(skip)]

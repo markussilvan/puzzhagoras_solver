@@ -1,18 +1,10 @@
 use eframe::egui;
-use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use crate::{
-    puzzle::{Dimensions, PuzzleBuilder},
+    puzzle::{Dimensions, PieceSet, PuzzleBuilder},
     solver::{PuzzleState, Solver},
 };
-
-#[derive(Deserialize, Serialize, PartialEq, Clone)]
-enum PieceSet {
-    Yellow,
-    Green,
-    Both,
-}
 
 pub struct PuzzhagorasApp {
     width: f32,
@@ -177,15 +169,12 @@ impl PuzzhagorasApp {
             dimensions.width, dimensions.height
         );
 
-        let pieces_data = match self.piece_set {
-            PieceSet::Yellow => include_str!("../yellow-pieces.json"),
-            PieceSet::Green => include_str!("../green-pieces.json"),
-            PieceSet::Both => include_str!("../both-pieces.json"),
-        };
+        let pieces_data = include_str!("../pieces.json");
 
         let puzzle = PuzzleBuilder::new()
             .with_dimensions(dimensions)
             .with_pieces_from_json(pieces_data)
+            .with_piece_set(self.piece_set)
             .build();
         self.solver = Some(Solver::new(puzzle));
 
