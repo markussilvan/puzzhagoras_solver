@@ -19,6 +19,25 @@ impl Dimensions {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum Direction {
+    Left,
+    Up,
+    Right,
+    Down,
+}
+
+impl Direction {
+    fn opposite(&self) -> Direction {
+        match self {
+            Self::Left => Self::Right,
+            Self::Up => Self::Down,
+            Self::Right => Self::Left,
+            Self::Down => Self::Up,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Square {
     empty: bool,
@@ -68,6 +87,16 @@ impl Board {
         )
     }
 
+    pub fn get_piece_towards(&self, position: usize, direction: Direction) -> (usize, bool) {
+        let pos = match direction {
+            Direction::Up => position - self.dimensions.width,
+            Direction::Down => position + self.dimensions.width,
+            Direction::Left => position - 1,
+            Direction::Right => position + 1,
+        };
+        self.get_piece(pos)
+    }
+
     pub fn add_piece(&mut self, position: usize, piece_id: usize) {
         self.squares[position].piece_id = piece_id;
         self.squares[position].empty = false;
@@ -80,6 +109,32 @@ impl Board {
 
     pub fn get_squares(&self) -> Vec<Square> {
         self.squares.clone()
+    }
+
+    pub fn is_on_edge(&self, position: usize, direction: Direction) -> bool {
+        match direction {
+            Direction::Up => {
+                if position < self.dimensions.width {
+                    return true;
+                }
+            }
+            Direction::Down => {
+                if position >= (self.dimensions.width * (self.dimensions.height - 1)) {
+                    return true;
+                }
+            }
+            Direction::Left => {
+                if position % self.dimensions.width == 0 {
+                    return true;
+                }
+            }
+            Direction::Right => {
+                if position % self.dimensions.width == self.dimensions.width - 1 {
+                    return true;
+                }
+            }
+        }
+        false
     }
 }
 
@@ -113,53 +168,10 @@ impl Puzzle {
     pub fn get_connectors_around(&self, position: usize) -> [Option<Connector>; 4] {
         let mut connectors = [None; 4];
 
-        let remainder = position % self.board.dimensions.width;
-
-        //TODO: remove the repetition and put it in a loop/function/macro instead
-
-        if remainder == 0 {
-            // is in the beginning of a row
-            connectors[0] = Some(Connector::flat());
-        } else {
-            // is not in the beginning of a row
-            let (piece_id, empty) = self.board.get_piece(position - 1);
-            if !empty {
-                connectors[0] = Some(self.pieces[piece_id].get_connector(2));
-            }
-        }
-
-        if remainder == self.board.dimensions.width - 1 {
-            // is the end of a row
-            connectors[2] = Some(Connector::flat());
-        } else {
-            // is not in the end of a row
-            let (piece_id, empty) = self.board.get_piece(position + 1);
-            if !empty {
-                connectors[2] = Some(self.pieces[piece_id].get_connector(0));
-            }
-        }
-
-        if position < self.board.dimensions.width {
-            // is on the first row
-            connectors[1] = Some(Connector::flat());
-        } else {
-            // is not on the first row
-            let (piece_id, empty) = self.board.get_piece(position - self.board.dimensions.width);
-            if !empty {
-                connectors[1] = Some(self.pieces[piece_id].get_connector(3));
-            }
-        }
-
-        if position >= (self.board.dimensions.width * (self.board.dimensions.height - 1)) {
-            // is on the last row
-            connectors[3] = Some(Connector::flat());
-        } else {
-            // is not on the last row
-            let (piece_id, empty) = self.board.get_piece(position + self.board.dimensions.width);
-            if !empty {
-                connectors[3] = Some(self.pieces[piece_id].get_connector(1));
-            }
-        }
+        self.get_connector_in_direction(&mut connectors, position, Direction::Left);
+        self.get_connector_in_direction(&mut connectors, position, Direction::Up);
+        self.get_connector_in_direction(&mut connectors, position, Direction::Right);
+        self.get_connector_in_direction(&mut connectors, position, Direction::Down);
 
         connectors
     }
@@ -183,6 +195,24 @@ impl Puzzle {
         serde_json::to_writer_pretty(&mut writer, &self.pieces)?;
         writer.flush()?;
         Ok(())
+    }
+
+    fn get_connector_in_direction(
+        &self,
+        connectors: &mut [Option<Connector>; 4],
+        position: usize,
+        direction: Direction,
+    ) {
+        if self.board.is_on_edge(position, direction) {
+            // the outside edges must always be flat
+            connectors[direction as usize] = Some(Connector::flat());
+        } else {
+            let (piece_id, empty) = self.board.get_piece_towards(position, direction);
+            if !empty {
+                connectors[direction as usize] =
+                    Some(self.pieces[piece_id].get_connector(direction.opposite() as usize));
+            }
+        }
     }
 }
 
