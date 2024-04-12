@@ -69,7 +69,7 @@ impl PuzzhagorasApp {
 
             ui.add(egui::Separator::spacing(egui::Separator::default(), 40.0));
 
-            let old_piece_set = self.piece_set.clone();
+            let old_piece_set = self.piece_set;
             ui.vertical(|ui| {
                 ui.heading("Piece set");
                 ui.radio_value(&mut self.piece_set, PieceSet::Yellow, "Yellow");
@@ -131,7 +131,12 @@ impl PuzzhagorasApp {
         }
 
         let (num_pieces, piece_offset) = get_piece_set_info(&self.piece_set);
-        let squares = self.solver.as_ref().unwrap().get_board_squares();
+
+        let squares = if let Some(s) = self.solver.as_ref() {
+            s.get_board_squares()
+        } else {
+            Vec::new()
+        };
 
         egui::Grid::new("puzzle_grid")
             .min_col_width(64.0)
@@ -150,10 +155,12 @@ impl PuzzhagorasApp {
                                 // this should never happen, but just in case...
                                 self.icon.clone()
                             };
-                            let piece = self.solver.as_ref().unwrap().get_piece(piece_id);
-                            let (angle, uv_rect) =
-                                get_piece_image_transformations(piece.rotations, piece.flipped);
-                            ui.add(image.rotate(angle, egui::Vec2::splat(0.5)).uv(uv_rect));
+                            if let Some(s) = self.solver.as_ref() {
+                                let piece = s.get_piece(piece_id);
+                                let (angle, uv_rect) =
+                                    get_piece_image_transformations(piece.rotations, piece.flipped);
+                                ui.add(image.rotate(angle, egui::Vec2::splat(0.5)).uv(uv_rect));
+                            };
                         }
                     }
                     ui.end_row();
@@ -184,14 +191,18 @@ impl PuzzhagorasApp {
     fn step(&mut self, ctx: &egui::Context) {
         if self.show_progress {
             if self.state == PuzzleState::Progressing || self.state == PuzzleState::Backtrack {
-                self.state = self.solver.as_mut().unwrap().step();
+                if let Some(s) = self.solver.as_mut() {
+                    self.state = s.step();
+                }
                 ctx.request_repaint();
             } else {
                 info!("Final state: {:?}", self.state);
             }
         } else {
             while self.state == PuzzleState::Progressing || self.state == PuzzleState::Backtrack {
-                self.state = self.solver.as_mut().unwrap().step();
+                if let Some(s) = self.solver.as_mut() {
+                    self.state = s.step();
+                }
             }
             info!("Final state: {:?}", self.state);
         }
