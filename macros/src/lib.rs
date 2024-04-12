@@ -60,3 +60,25 @@ pub fn include_piece_images(input: TokenStream) -> TokenStream {
 
     output.into()
 }
+
+#[proc_macro_derive(EnumVariantCount)]
+pub fn enum_variant_count_derive(input: TokenStream) -> TokenStream {
+    let Ok(syn_item) = syn::parse::<syn::DeriveInput>(input) else {
+        panic!("Parsing enum token input failed");
+    };
+
+    let (enum_token, len) = match syn_item.data {
+        syn::Data::Enum(enum_item) => (syn_item.ident, enum_item.variants.len()),
+        _ => panic!("EnumVariantCount can only be used with enums!"),
+    };
+
+    let expanded = quote! {
+      impl #enum_token {
+        pub const fn count() -> usize {
+            #len
+        }
+      }
+    };
+
+    expanded.into()
+}
