@@ -1,5 +1,26 @@
 use serde::{Deserialize, Serialize};
 
+use puzzhagoras_solver_macros::EnumVariantCount;
+
+#[derive(Clone, Copy, EnumVariantCount)]
+pub enum Direction {
+    Left,
+    Up,
+    Right,
+    Down,
+}
+
+impl Direction {
+    pub fn opposite(&self) -> Direction {
+        match self {
+            Self::Left => Self::Right,
+            Self::Up => Self::Down,
+            Self::Right => Self::Left,
+            Self::Down => Self::Up,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnectorGender {
@@ -65,13 +86,16 @@ pub enum Color {
     Yellow,
 }
 
+pub type Connectors = [Connector; Direction::count()];
+pub type OptionalConnectors = [Option<Connector>; Direction::count()];
+
 /// A single puzzle piece with four edges.
 ///
 /// A None connector means the edge is flat.
 /// Also two flat edges are considered to fit together.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Piece {
-    connectors: [Connector; 4],
+    connectors: Connectors,
     pub color: Color,
     #[serde(skip)]
     pub used: bool,
@@ -98,7 +122,8 @@ impl Piece {
         }
 
         // swap left and right side connectors
-        self.connectors.swap(0, 2);
+        self.connectors
+            .swap(Direction::Left as usize, Direction::Right as usize);
 
         // mark that piece is flipped (or returned to original orientation)
         self.flipped = !self.flipped;
@@ -108,7 +133,7 @@ impl Piece {
         self.connectors[index]
     }
 
-    pub fn fits(&self, connectors_around: &[Option<Connector>; 4]) -> bool {
+    pub fn fits(&self, connectors_around: &OptionalConnectors) -> bool {
         for (i, connector_opt) in connectors_around.iter().enumerate() {
             if let Some(conn) = connector_opt {
                 if !self.get_connector(i).fits(conn) {

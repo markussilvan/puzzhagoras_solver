@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::piece::{Color, Connector, Piece};
+use super::piece::{Color, Connector, Direction, OptionalConnectors, Piece};
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Copy)]
 pub enum PieceSet {
@@ -18,25 +18,6 @@ pub struct Dimensions {
 impl Dimensions {
     pub fn new(width: usize, height: usize) -> Self {
         Self { width, height }
-    }
-}
-
-#[derive(Clone, Copy)]
-pub enum Direction {
-    Left,
-    Up,
-    Right,
-    Down,
-}
-
-impl Direction {
-    fn opposite(&self) -> Direction {
-        match self {
-            Self::Left => Self::Right,
-            Self::Up => Self::Down,
-            Self::Right => Self::Left,
-            Self::Down => Self::Up,
-        }
     }
 }
 
@@ -167,8 +148,8 @@ impl Puzzle {
         }
     }
 
-    pub fn get_connectors_around(&self, position: usize) -> [Option<Connector>; 4] {
-        let mut connectors = [None; 4];
+    pub fn get_connectors_around(&self, position: usize) -> OptionalConnectors {
+        let mut connectors = [None; Direction::count()];
 
         self.get_connector_in_direction(&mut connectors, position, Direction::Left);
         self.get_connector_in_direction(&mut connectors, position, Direction::Up);
@@ -180,7 +161,7 @@ impl Puzzle {
 
     fn get_connector_in_direction(
         &self,
-        connectors: &mut [Option<Connector>; 4],
+        connectors: &mut OptionalConnectors,
         position: usize,
         direction: Direction,
     ) {

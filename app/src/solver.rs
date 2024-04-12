@@ -1,7 +1,7 @@
 use tracing::{debug, info, trace};
 
 use crate::{
-    piece::Piece,
+    piece::{Direction, Piece},
     puzzle::{Puzzle, Square},
 };
 
@@ -159,7 +159,7 @@ impl Solver {
 
         // try the piece in all it's rotations (including flipping it)
         for _ in 0..2 {
-            for _ in 0..4 {
+            for _ in 0..Direction::count() {
                 if piece.fits(&connectors_around) {
                     trace!("Piece fits on all sides");
                     fits = true;
