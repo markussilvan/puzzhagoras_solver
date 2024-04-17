@@ -12,6 +12,7 @@ pub struct PuzzhagorasApp {
     piece_set: PieceSet,
     solver: Option<Solver>,
     show_progress: bool,
+    show_about_dialog: bool,
     state: PuzzleState,
     icon: egui::Image<'static>,
     piece_images: Vec<egui::Image<'static>>,
@@ -32,6 +33,7 @@ impl Default for PuzzhagorasApp {
             piece_set: PieceSet::Yellow,
             solver: None,
             show_progress: false,
+            show_about_dialog: false,
             state: PuzzleState::Idle,
             icon: egui::Image::new(egui::include_image!("../assets/puzzhagoras_icon.png")),
             piece_images: images,
@@ -207,6 +209,37 @@ impl PuzzhagorasApp {
             info!("Final state: {:?}", self.state);
         }
     }
+
+    fn about_dialog(&mut self, ctx: &egui::Context) {
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
+        let screen_rect_size = ctx.screen_rect().size();
+        let center_pos = egui::Pos2::new(screen_rect_size.x / 2.0, screen_rect_size.y / 2.0);
+        egui::Window::new("About")
+            .collapsible(false)
+            .resizable(false)
+            .movable(false)
+            .default_size(egui::Vec2::new(250.0, 200.0))
+            .pivot(egui::Align2([egui::Align::Center, egui::Align::Center]))
+            .current_pos(center_pos)
+            .show(ctx, |ui| {
+                ui.vertical(|ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.add(
+                            self.icon
+                                .clone()
+                                .fit_to_exact_size(egui::Vec2::new(64.0, 64.0)),
+                        );
+                        ui.add(egui::Label::new(format!("Puzzhagoras Solver v{VERSION}")));
+                        ui.add(egui::Label::new("by Markus Silván, 2024"));
+                        egui::warn_if_debug_build(ui);
+                        ui.add_space(10.0);
+                        if ui.button("Close").clicked() {
+                            self.show_about_dialog = false;
+                        }
+                    });
+                });
+            });
+    }
 }
 
 impl eframe::App for PuzzhagorasApp {
@@ -217,6 +250,9 @@ impl eframe::App for PuzzhagorasApp {
                 let is_web = cfg!(target_arch = "wasm32");
                 if !is_web {
                     ui.menu_button("File", |ui| {
+                        if ui.button("About").clicked() {
+                            self.show_about_dialog = true;
+                        }
                         if ui.button("Quit").clicked() {
                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
@@ -237,28 +273,12 @@ impl eframe::App for PuzzhagorasApp {
             ui.separator();
 
             self.puzzle(ui);
-            ui.separator();
 
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
-                egui::warn_if_debug_build(ui);
-            });
+            if self.show_about_dialog {
+                self.about_dialog(ctx);
+            }
         });
     }
-}
-
-fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 0.0;
-        ui.label("Powered by ");
-        ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-        ui.label(" and ");
-        ui.hyperlink_to(
-            "eframe",
-            "https://github.com/emilk/egui/tree/master/crates/eframe",
-        );
-        ui.label(".");
-    });
 }
 
 /// Get information related to the used piece set

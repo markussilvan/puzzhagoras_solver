@@ -11,6 +11,7 @@ specification.
  - Add option to see puzzle solving progress
  - Include piece definitions to the executable from the JSON file during compilation
  - A virtual workspace and a separate crate for proc_macros
+ - Add an about dialog
  - Use tracing
 
 ### Changed
