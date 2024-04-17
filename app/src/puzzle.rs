@@ -19,6 +19,10 @@ impl Dimensions {
     pub fn new(width: usize, height: usize) -> Self {
         Self { width, height }
     }
+
+    pub fn default() -> Self {
+        Self::new(0, 0)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -216,20 +220,24 @@ impl PuzzleBuilder {
     }
 
     pub fn build(&mut self) -> Puzzle {
-        let dimensions = self.dimensions.as_ref().unwrap().clone();
+        let dimensions = self
+            .dimensions
+            .as_ref()
+            .map_or(Dimensions::default(), |x| x.clone());
         let mut puzzle = Puzzle::new(dimensions);
 
-        if self.json.is_some() {
-            let Ok(mut pieces) = serde_json::from_str::<Vec<Piece>>(self.json.as_ref().unwrap())
-            else {
+        if let Some(json) = self.json {
+            let Ok(mut pieces) = serde_json::from_str::<Vec<Piece>>(json) else {
                 panic!("Invalid pieces JSON");
             };
 
-            match self.piece_set.as_ref().unwrap() {
-                PieceSet::Yellow => pieces.retain(|x| x.color == Color::Yellow),
-                PieceSet::Green => pieces.retain(|x| x.color == Color::Green),
-                PieceSet::Both => {}
-            };
+            if let Some(piece_set) = self.piece_set {
+                match piece_set {
+                    PieceSet::Yellow => pieces.retain(|x| x.color == Color::Yellow),
+                    PieceSet::Green => pieces.retain(|x| x.color == Color::Green),
+                    PieceSet::Both => {}
+                };
+            }
 
             puzzle.pieces = pieces;
         }
