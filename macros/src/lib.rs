@@ -45,7 +45,7 @@ pub fn include_piece_images(input: TokenStream) -> TokenStream {
 
     let mut filenames = Vec::new();
     for set in input.sets {
-        for i in 0..set.count.base10_parse().unwrap() {
+        for i in 0..set.count.base10_parse().unwrap_or(0) {
             filenames.push(format!("{}{i:02}.png", set.prefix.value()));
         }
     }
