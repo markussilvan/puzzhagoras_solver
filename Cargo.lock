@@ -2216,7 +2216,7 @@ checksum = "43d84d1d7a6ac92673717f9f6d1518374ef257669c24ebc5ac25d5033828be58"
 
 [[package]]
 name = "puzzhagoras_solver"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "eframe",
  "egui_extras",
@@ -2229,7 +2229,7 @@ dependencies = [
 
 [[package]]
 name = "puzzhagoras_solver_macros"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "quote",
  "syn 2.0.58",
