@@ -3,7 +3,7 @@
 This changelog tries to adhere to the [Common Changelog](https://common-changelog.org)
 specification.
 
-## [0.2.0] - 2024-xx-xx
+## [0.2.0] - 2024-04-20
 
 ### Added
 
