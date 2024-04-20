@@ -3,7 +3,13 @@
 This changelog tries to adhere to the [Common Changelog](https://common-changelog.org)
 specification.
 
+## [0.3.0] - 2024-xx-xx
+
+TDB
+
 ## [0.2.0] - 2024-04-20
+
+Improved GUI.
 
 ### Added
 
