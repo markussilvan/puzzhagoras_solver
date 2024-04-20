@@ -259,8 +259,6 @@ impl eframe::App for PuzzhagorasApp {
                     });
                     ui.add_space(16.0);
                 }
-
-                egui::widgets::global_dark_light_mode_buttons(ui);
             });
         });
 
