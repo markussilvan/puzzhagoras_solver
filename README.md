@@ -3,6 +3,8 @@
 A brute force backtracking solver for all variations of the *Puzzhagoras*
 jigsaw puzzle by Vesa Timonen.
 
+![Build workflow](https://github.com/markussilvan/puzzhagoras_solver/actions/workflows/build.yml/badge.svg)
+
 ## The Puzzle
 
 A jigsaw puzzle which only has pieces in two colors. Pieces don't form a
